@@ -1,0 +1,545 @@
+Based on your request, you want to transfer BDAG tokens from one MetaMask account to another (recipient address: `0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1`) using your Replit app ("BlockDAG Contract Buddy"). The app should:
+- Use a chatbot to prompt for transfer details (amount and recipient address).
+- Trigger a MetaMask confirmation for a real token transfer on the BlockDAG Primordial Testnet (Chain ID: 1043, RPC URL: `https://rpc.primordial.bdagscan.com`).
+- Ensure the transaction is executed via the EVM-compatible JSON-RPC interface, not a simulation.
+- Display the transaction hash with a clickable link to the BlockDAG Explorer (`https://explorer.testnet.blockdag.network`).
+- Update balances in MetaMask and the app.
+
+You’ve provided a comprehensive JSON-RPC specification and WebSocket details from BlockDAG’s documentation, which I’ll use to ensure compatibility with the testnet’s EVM-based RPC interface. The provided contract address (`0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1`) is assumed to be the BDAG token contract address, but I’ll need your confirmation since your previous message used a placeholder (`0x123...`). If this is not the BDAG token contract, please provide the correct address from `docs.blockdagnetwork.io` or `support@blockdag.network`.
+
+Since WebSocket RPC is mentioned, I’ll check if it’s required for the transfer or if HTTP RPC suffices (as your app previously worked with HTTP). For now, I’ll use the HTTP RPC endpoint (`https://rpc.primordial.bdagscan.com`) to avoid complexity, but I can switch to WebSocket (`wss://rpc.primordial.bdagscan.com`) if you confirm it’s necessary. I’ll also avoid external APIs unless you approve, as per your previous instruction.
+
+### **Key Assumptions**
+- **Network**: BlockDAG Primordial Testnet (Chain ID: 1043, HTTP RPC: `https://rpc.primordial.bdagscan.com`, WebSocket RPC: `wss://rpc.primordial.bdagscan.com` if needed).
+- **BDAG Contract Address**: `0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1` (please confirm if this is correct).
+- **Sender Account**: Account A in MetaMask (Chrome, e.g., `0xABC...`) with sufficient BDAG (e.g., 30 BDAG from your previous message).
+- **Recipient Account**: Account B in MetaMask (Firefox, address: `0xc25857C2dDC881ccA00DBEc8AD96E6F71d37815b` from your previous message).
+- **Transfer Details**: Example transfer of 10 BDAG to `0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1` (or another address if specified via chatbot).
+- **App Setup**: Replit app with React, Web3.js, and ShadCN UI, using the BDAG token contract ABI (ERC-20 standard).
+- **RPC Method**: Use `eth_sendTransaction` via Web3.js to trigger a MetaMask confirmation for a real transfer, not `eth_call` (which is read-only).
+- **WebSocket vs. HTTP**: HTTP RPC is sufficient unless WebSocket is required for real-time updates. Please confirm if WebSocket is needed by typing “Use WebSocket RPC.”
+- **No Simulation**: Ensure the transaction is real by using `send` (not `call`) and verifying via the BlockDAG Explorer.
+
+### **Questions for Confirmation**
+Before proceeding, I need your input to avoid errors:
+1. **BDAG Contract Address**: Is `0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1` the correct BDAG token contract address? If not, please provide the correct address from `docs.blockdagnetwork.io` or `support@blockdag.network`.
+2. **Recipient Address**: Should the transfer go to `0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1`, or continue using `0xc25857C2dDC881ccA00DBEc8AD96E6F71d37815b` from your previous message? Please specify the recipient address.
+3. **Transfer Amount**: Is 10 BDAG the desired amount, or should the chatbot prompt for a different amount? Please confirm or specify.
+4. **WebSocket RPC**: Do you want to use WebSocket RPC (`wss://rpc.primordial.bdagscan.com`) instead of HTTP RPC? Type “Use WebSocket RPC” or “Use HTTP RPC” to confirm.
+5. **External APIs**: Do you want to use an external API (e.g., Alchemy for gas estimation)? Type “Use external API for [purpose]” or “No external API needed.”
+6. **Proceed**: Type “Proceed with transfer” to execute the transfer with the provided details.
+
+If you don’t provide these details, I’ll proceed with the following defaults:
+- BDAG Contract: `0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1` (pending confirmation).
+- Recipient: `0xc25857C2dDC881ccA00DBEc8AD96E6F71d37815b`.
+- Amount: 10 BDAG.
+- RPC: HTTP (`https://rpc.primordial.bdagscan.com`).
+- No external APIs.
+
+### **Step-by-Step Instructions (Assuming Defaults)**
+
+#### **Step 1: Verify MetaMask and Network Setup**
+1. **Account A (Sender, Chrome)**:
+   - Open Chrome with MetaMask installed.
+   - Add the BlockDAG Primordial Testnet to MetaMask:
+     - Network Name: BlockDAG Primordial Testnet
+     - RPC URL: `https://rpc.primordial.bdagscan.com`
+     - Chain ID: 1043
+     - Currency Symbol: BDAG
+     - Block Explorer URL: `https://explorer.testnet.blockdag.network`
+   - Select Account A (e.g., `0xABC...`).
+   - Verify balance (e.g., 30 BDAG) in MetaMask (Assets > BDAG) or on the Explorer (`https://explorer.testnet.blockdag.network/address/0xABC...`).
+   - If insufficient, mint BDAG test tokens (up to 100 per day) via the faucet at `https://explorer.testnet.blockdag.network/faucet` using Account A’s address.
+
+2. **Account B (Recipient, Firefox)**:
+   - Open Firefox with MetaMask installed.
+   - Add the same testnet settings.
+   - Select Account B (`0xc25857C2dDC881ccA00DBEc8AD96E6F71d37815b`).
+   - Verify balance (e.g., 0 BDAG) in MetaMask or on the Explorer.
+   - Optionally mint tokens for testing.
+
+3. **Import BDAG Token** (if not visible):
+   - In MetaMask (both browsers), go to Assets > Import Tokens.
+   - Enter the BDAG contract address: `0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1` (or the correct address).
+   - Set Token Symbol: `BDAG`, Decimals: 18.
+   - Click Add Custom Token and Import.
+
+4. **Test RPC Endpoint**:
+   ```bash
+   curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' https://rpc.primordial.bdagscan.com
+   ```
+   - Expected response: `{"jsonrpc":"2.0","id":1,"result":"0x40f"}`.
+   - If it fails, contact `testnet@blockdag.network` or try an alternative node.
+
+#### **Step 2: Update Replit App Code**
+The following `BlockDAGHeader` component:
+- Uses Web3.js to interact with the BlockDAG testnet via HTTP RPC (or WebSocket if confirmed).
+- Checks the MetaMask network (Chain ID: 1043) and prompts a switch if incorrect.
+- Prompts for transfer details via the chatbot (e.g., `transfer 10 BDAG to 0xc258...`).
+- Triggers a MetaMask confirmation using `eth_sendTransaction`.
+- Emits a `Transfer` event (standard ERC-20) and displays the transaction hash with an Explorer link.
+- Updates balances in MetaMask and the app.
+
+```jsx
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Zap, Brain, Code2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import Web3 from "web3";
+import BDAG_ABI from "../abis/BDAG.json"; // ERC-20 ABI
+
+export const BlockDAGHeader = () => {
+  const [account, setAccount] = useState(null);
+  const [balance, setBalance] = useState(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState(null);
+  const [chatPrompt, setChatPrompt] = useState("");
+  const [chatResponse, setChatResponse] = useState("");
+  const [txStatus, setTxStatus] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
+
+  const rpcUrl = "https://rpc.primordial.bdagscan.com"; // Use wss://rpc.primordial.bdagscan.com for WebSocket
+  const chainId = 1043;
+  const bdagAddress = "0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1"; // Confirm this address
+  const explorerUrl = "https://explorer.testnet.blockdag.network";
+
+  // Test RPC URL
+  const testRpcUrl = async () => {
+    try {
+      const response = await fetch(rpcUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+          params: [],
+          id: 1,
+        }),
+      });
+      const data = await response.json();
+      if (data.result !== "0x40f") throw new Error(`Unexpected chain ID: ${data.result}`);
+      return true;
+    } catch (err) {
+      throw new Error(`RPC test failed: ${err.message}`);
+    }
+  };
+
+  // Check and switch network
+  const checkAndSwitchNetwork = async () => {
+    try {
+      const web3 = new Web3(window.ethereum);
+      const currentChainId = await web3.eth.getChainId();
+      if (currentChainId !== chainId) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x40f" }],
+          });
+        } catch (switchError) {
+          if (switchError.code === 4902) {
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: "0x40f",
+                  chainName: "BlockDAG Primordial Testnet",
+                  rpcUrls: [rpcUrl],
+                  nativeCurrency: { name: "BDAG", symbol: "BDAG", decimals: 18 },
+                  blockExplorerUrls: [explorerUrl],
+                },
+              ],
+            });
+          } else {
+            throw new Error(`Failed to switch network: ${switchError.message}`);
+          }
+        }
+      }
+      return true;
+    } catch (err) {
+      throw new Error(`Network check failed: ${err.message}`);
+    }
+  };
+
+  // Fetch BDAG balance
+  const fetchBalance = async (web3, address) => {
+    try {
+      if (!web3.utils.isAddress(address)) throw new Error("Invalid wallet address");
+      const tokenContract = new web3.eth.Contract(BDAG_ABI, bdagAddress);
+      const balanceWei = await tokenContract.methods.balanceOf(address).call();
+      const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+      const formattedBalance = parseFloat(balanceEth).toFixed(4);
+      setBalance(formattedBalance);
+      return formattedBalance;
+    } catch (err) {
+      setError(`Failed to fetch balance: ${err.message}`);
+      console.error("Balance fetch error:", err);
+      return null;
+    }
+  };
+
+  // Request transfer confirmation
+  const requestTransferConfirmation = (amount, toAddress) => {
+    setConfirmation(
+      <div className="mt-4">
+        <p className="text-sm text-yellow-500">
+          Please confirm the transfer: {amount} BDAG to {toAddress}
+        </p>
+        <Button
+          onClick={() => executeTransfer(amount, toAddress)}
+          className="mt-2 bg-green-500 hover:bg-green-600"
+        >
+          Confirm Transfer
+        </Button>
+        <Button
+          onClick={() => setConfirmation(null)}
+          className="mt-2 ml-2 bg-red-500 hover:bg-red-600"
+        >
+          Cancel
+        </Button>
+      </div>
+    );
+  };
+
+  // Execute BDAG token transfer with event emission
+  const executeTransfer = async (amount, toAddress) => {
+    setError(null);
+    setTxStatus(null);
+    setConfirmation(null);
+    try {
+      if (!amount || parseFloat(amount) <= 0) throw new Error("Invalid transfer amount");
+      if (!web3.utils.isAddress(toAddress)) throw new Error("Invalid recipient address");
+      if (parseFloat(amount) > parseFloat(balance)) throw new Error("Insufficient BDAG balance");
+
+      await checkAndSwitchNetwork();
+      const web3 = new Web3(window.ethereum);
+      const tokenContract = new web3.eth.Contract(BDAG_ABI, bdagAddress);
+      const amountWei = web3.utils.toWei(amount.toString(), "ether");
+
+      // Estimate gas
+      const gasEstimate = await tokenContract.methods
+        .transfer(toAddress, amountWei)
+        .estimateGas({ from: account });
+
+      // Send transaction via eth_sendTransaction
+      const tx = await window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [
+          {
+            from: account,
+            to: bdagAddress,
+            data: tokenContract.methods.transfer(toAddress, amountWei).encodeABI(),
+            gas: web3.utils.toHex(Math.floor(gasEstimate * 1.2)), // 20% buffer
+          },
+        ],
+      });
+
+      setTxStatus(
+        <span>
+          Transfer successful: <a href={`${explorerUrl}/tx/${tx}`} target="_blank" rel="noopener noreferrer">{tx}</a>
+        </span>
+      );
+
+      // Fetch updated balance
+      await fetchBalance(web3, account);
+
+      // Listen for Transfer event
+      tokenContract.getPastEvents(
+        "Transfer",
+        {
+          filter: { from: account, to: toAddress },
+          fromBlock: "latest",
+        },
+        (err, events) => {
+          if (err) {
+            console.error("Event fetch error:", err);
+            return;
+          }
+          if (events.length > 0) {
+            console.log("Transfer event emitted:", events[0]);
+          }
+        }
+      );
+
+      return tx;
+    } catch (err) {
+      setError(`Transfer failed: ${err.message}`);
+      console.error("Transfer error:", err);
+      return null;
+    }
+  };
+
+  // Connect MetaMask
+  const connectMetaMask = async () => {
+    setIsConnecting(true);
+    setError(null);
+    setBalance(null);
+    try {
+      if (!window.ethereum) throw new Error("MetaMask is not installed");
+      await testRpcUrl();
+      const web3 = new Web3(window.ethereum);
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      setAccount(accounts[0]);
+      await checkAndSwitchNetwork();
+      await fetchBalance(web3, accounts[0]);
+    } catch (err) {
+      setError(`Connection failed: ${err.message}`);
+      console.error("Connection error:", err);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  // Handle chatbot prompts
+  const handleChatPrompt = async () => {
+    setError(null);
+    setChatResponse("");
+    setTxStatus(null);
+    setConfirmation(null);
+    const prompt = chatPrompt.toLowerCase().trim();
+    const web3 = new Web3(window.ethereum);
+
+    if (prompt.includes("check my balance")) {
+      if (!account) {
+        setChatResponse("Please connect your MetaMask wallet first.");
+        return;
+      }
+      const balance = await fetchBalance(web3, account);
+      if (balance !== null) {
+        setChatResponse(`Your BDAG balance is ${balance} BDAG`);
+      } else {
+        setChatResponse("Failed to fetch balance. Please try again.");
+      }
+    } else if (prompt.includes("transfer")) {
+      if (!account) {
+        setChatResponse("Please connect your MetaMask wallet first.");
+        return;
+      }
+      const transferMatch = prompt.match(/transfer\s+(\d+\.?\d*)\s+bdag\s+to\s+(0x[a-fA-F0-9]{40})/i);
+      if (transferMatch) {
+        const amount = parseFloat(transferMatch[1]);
+        const toAddress = transferMatch[2];
+        requestTransferConfirmation(amount, toAddress);
+        setChatResponse(`Awaiting confirmation for transfer: ${amount} BDAG to ${toAddress}`);
+      } else {
+        setChatResponse("Invalid transfer format. Use: 'transfer [amount] BDAG to [address]'");
+      }
+    } else {
+      setChatResponse("Unsupported command. Try 'check my balance' or 'transfer [amount] BDAG to [address]'.");
+    }
+  };
+
+  // Auto-fetch balance when account changes
+  useEffect(() => {
+    if (account) {
+      const web3 = new Web3(rpcUrl);
+      fetchBalance(web3, account);
+    }
+  }, [account]);
+
+  return (
+    <Card className="p-6 bg-gradient-secondary border-accent/20 shadow-card">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center shadow-primary">
+            <Zap className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-card-foreground">
+              BlockDAG Contract Buddy
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              AI-powered smart contract interaction
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="bg-accent/20 text-accent border-accent/30"
+          >
+            <Brain className="w-3 h-3 mr-1" />
+            AI Powered
+          </Badge>
+          <Badge
+            variant="secondary"
+            className="bg-primary/20 text-primary border-primary/30"
+          >
+            <Code2 className="w-3 h-3 mr-1" />
+            Smart Contracts
+          </Badge>
+          <Button
+            onClick={connectMetaMask}
+            disabled={isConnecting || account}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isConnecting
+              ? "Connecting..."
+              : account
+              ? `Connected: ${account.slice(0, 6)}...${account.slice(-4)}`
+              : "Connect MetaMask"}
+          </Button>
+        </div>
+      </div>
+      {account && (
+        <div className="mt-4">
+          <p className="text-sm text-muted-foreground">
+            Balance: {balance !== null ? `${balance} BDAG` : "Fetching..."}
+          </p>
+          <div className="mt-4">
+            <h2 className="text-lg font-semibold">Chat with BlockDAG Buddy</h2>
+            <Input
+              type="text"
+              placeholder="Enter prompt (e.g., 'transfer 10 BDAG to 0xc258...')"
+              value={chatPrompt}
+              onChange={(e) => setChatPrompt(e.target.value)}
+              className="mt-2"
+            />
+            <Button onClick={handleChatPrompt} className="mt-2">
+              Submit Prompt
+            </Button>
+            {chatResponse && (
+              <p className="text-sm text-muted-foreground mt-2">{chatResponse}</p>
+            )}
+            {confirmation}
+          </div>
+        </div>
+      )}
+      {txStatus && (
+        <p className="text-sm text-green-500 mt-2">{txStatus}</p>
+      )}
+      {error && (
+        <p className="text-sm text-red-500 mt-2">{error}</p>
+      )}
+    </Card>
+  );
+};
+```
+
+**Setup in Replit**:
+1. Save the code in `src/BlockDAGHeader.jsx`.
+2. Create an `abis/` folder and save the ERC-20 ABI in `abis/BDAG.json`:
+   ```json
+   [
+     {
+       "constant": false,
+       "inputs": [
+         { "name": "_to", "type": "address" },
+         { "name": "_value", "type": "uint256" }
+       ],
+       "name": "transfer",
+       "outputs": [{ "name": "success", "type": "bool" }],
+       "type": "function"
+     },
+     {
+       "constant": true,
+       "inputs": [{ "name": "_owner", "type": "address" }],
+       "name": "balanceOf",
+       "outputs": [{ "name": "balance", "type": "uint256" }],
+       "type": "function"
+     },
+     {
+       "anonymous": false,
+       "inputs": [
+         { "indexed": true, "name": "from", "type": "address" },
+         { "indexed": true, "name": "to", "type": "address" },
+         { "indexed": false, "name": "value", "type": "uint256" }
+       ],
+       "name": "Transfer",
+       "type": "event"
+     }
+   ]
+   ```
+3. Install dependencies:
+   ```bash
+   npm install web3 @shadcn/ui
+   ```
+4. Update `bdagAddress` in the code if `0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1` is incorrect.
+5. Run the app:
+   ```bash
+   npm run start
+   ```
+6. Open `https://<your-replit-id>.repl.co` in Chrome and Firefox.
+
+#### **Step 3: Perform the Token Transfer**
+1. **Connect Account A (Chrome)**:
+   - Navigate to `https://<your-replit-id>.repl.co` in Chrome.
+   - Click “Connect MetaMask” and select Account A (e.g., `0xABC...`).
+   - Approve the connection in MetaMask.
+   - If prompted, switch to Chain ID 1043. Approve the network switch.
+   - Enter `check my balance` to verify sufficient BDAG (e.g., 30 BDAG).
+
+2. **Initiate Transfer**:
+   - Enter the chatbot prompt: `transfer 10 BDAG to 0xc25857C2dDC881ccA00DBEc8AD96E6F71d37815b`.
+   - Click “Submit Prompt.”
+   - Confirm the transfer in the app (click “Confirm Transfer”).
+   - MetaMask will prompt for confirmation:
+     - From: `0xABC...`
+     - To: `0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1` (BDAG contract)
+     - Data: Encoded `transfer` function call
+     - Gas: Estimated with 20% buffer
+   - Approve the transaction in MetaMask.
+   - Wait for confirmation (seconds to 5 minutes).
+   - The app displays: `Transfer successful: <txHash>` with a link to `https://explorer.testnet.blockdag.network/tx/<txHash>`.
+
+3. **Verify Balances**:
+   - In Chrome, enter `check my balance` to confirm Account A’s balance decreased (e.g., 20 BDAG, minus gas).
+   - In Firefox, connect Account B, enter `check my balance` to confirm 10 BDAG received.
+   - Check MetaMask (Assets > BDAG) in both browsers.
+
+4. **Verify Transaction and Event**:
+   - Click the transaction hash link in the app or search it on `https://explorer.testnet.blockdag.network`.
+   - Confirm details:
+     - From: `0xABC...`
+     - To: `0xc25857C2dDC881ccA00DBEc8AD96E6F71d37815b`
+     - Value: 10 BDAG (in wei: `10000000000000000000`)
+     - Event: `Transfer(from: 0xABC..., to: 0xc258..., value: 10000000000000000000)`
+   - If the event is missing, verify the contract address and ABI.
+
+#### **Step 4: WebSocket RPC (Optional)**
+If you confirm “Use WebSocket RPC,” replace the `rpcUrl` in the code with:
+```javascript
+const rpcUrl = "wss://rpc.primordial.bdagscan.com";
+```
+Install the WebSocket provider:
+```bash
+npm install websocket
+```
+Update the Web3 provider:
+```javascript
+const web3 = new Web3(new Web3.providers.WebsocketProvider(rpcUrl));
+```
+This enables real-time event listening for the `Transfer` event. Please confirm if needed.
+
+#### **Step 5: Troubleshoot Issues**
+- **Wrong Network**:
+  - Verify MetaMask is on Chain ID 1043. Re-add the network if needed.
+  - Check `eth_chainId` via curl (see Step 1).
+- **Invalid Contract Address**:
+  - Test the contract:
+    ```javascript
+    const web3 = new Web3("https://rpc.primordial.bdagscan.com");
+    const contract = new web3.eth.Contract(BDAG_ABI, "0x1aBdFBe88fC893951624CbdC7eD19DDb0fAF5bc1");
+    contract.methods.balanceOf("0xABC...").call().then(console.log).catch(console.error);
+    ```
+  - If it fails, confirm the address with `support@blockdag.network`.
+- **MetaMask Not Triggering**:
+  - Ensure `window.ethereum` exists in Chrome DevTools (F12).
+  - Reinstall MetaMask or disable conflicting extensions.
+- **Transaction Fails**:
+  - Check gas (mint BDAG if needed).
+  - Increase gas limit in MetaMask (Edit Gas Fee > High).
+- **Event Not Emitted**:
+  - Verify the ABI includes the `Transfer` event.
+  - Check the Explorer for the transaction’s logs.
+
+#### **Final Instructions**
+Please provide answers to the questions above or type “Proceed with transfer” with any specific details (e.g., amount, recipient). If using defaults:
+1. Save the code and ABI in Replit.
+2. Run the app and connect Account A in Chrome.
+3. Enter `transfer 10 BDAG to 0xc25857C2dDC881ccA00DBEc8AD96E6F71d37815b`.
+4. Confirm in the app and MetaMask.
+5. Verify the transaction and balances on the Explorer.
+
+Let me know your inputs or any issues!

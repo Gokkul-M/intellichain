@@ -1,0 +1,525 @@
+Overview and AssumptionsNetwork: BlockDAG Primordial Testnet (Chain ID: 1043, RPC URL: https://rpc.primordial.bdagscan.com, Currency: BDAG).
+Tokens: BDAG is assumed to be an ERC-20-like token on the BlockDAG testnet. For swaps, you’ll need a decentralized exchange (DEX) or swap contract compatible with BlockDAG (e.g., a Uniswap V2-like router). For staking, you’ll need a staking contract.
+Environment: Replit running a React frontend with Web3.js, using components like Card, Badge, and Button (e.g., from ShadCN).
+MetaMask: Installed and connected, with testnet BDAG available (from the BlockDAG faucet).
+Issue Context: Your previous issues (e.g., RPC errors, random balance values) suggest potential network or contract interaction challenges. The solution will include robust error handling and Replit-specific considerations.
+
+Since BlockDAG’s testnet is new and may not have a public DEX like Uniswap or a staking contract readily available, I’ll provide a generic implementation using ERC-20 standards and Uniswap V2-like swap logic, which you can adapt once you have the specific contract addresses and ABIs from docs.blockdagnetwork.io or support@blockdag.network. If BlockDAG provides a custom DEX or staking contract, you’ll need to adjust the contract addresses and ABIs accordingly.PrerequisitesMetaMask Setup:Ensure MetaMask is on the BlockDAG Primordial Testnet (Chain ID: 1043, RPC URL: https://rpc.primordial.bdagscan.com, Currency: BDAG).
+Verify your wallet has testnet BDAG (request from https://explorer.testnet.blockdag.network or docs.blockdagnetwork.io faucet).
+Replit Dependencies:Install web3 in Replit:bash
+
+npm install web3
+Ensure your React app uses HTTPS (https://<your-replit-id>.repl.co) for MetaMask compatibility.
+Contract Details:Swap Contract: A Uniswap V2-like router contract for token swaps (e.g., BDAG to another token). You’ll need its address and ABI. If unavailable, contact support@blockdag.network or check docs.blockdagnetwork.io.
+Staking Contract: A contract allowing BDAG staking and rewards. You’ll need its address and ABI.
+Token Contract: BDAG’s ERC-20 contract address and ABI for approvals and balance checks.
+For this guide, I’ll use placeholder addresses and standard ERC-20/Uniswap V2 ABIs. Replace them with BlockDAG-specific details.
+Test Tokens:Ensure you have BDAG and another test token (e.g., a test stablecoin) for swapping. Request from the BlockDAG faucet or testnet deployer.
+Step-by-Step InstructionsStep 1: Obtain Contract Addresses and ABIsFind BlockDAG Contracts:Visit docs.blockdagnetwork.io or https://explorer.testnet.blockdag.network to find the BDAG token contract, swap router (e.g., Uniswap V2-like), and staking contract addresses and ABIs.
+If unavailable, email support@blockdag.network or check BlockDAG’s Discord/X (@blockdagnetwork
+) for testnet contract details.
+Example placeholders (replace with actual values):BDAG Token: 0x123... (ERC-20 contract)
+Swap Router: 0x456... (Uniswap V2-like router)
+Staking Contract: 0x789...
+Store ABIs:Create a folder in Replit (e.g., abis/) and save the ABIs as JSON files:BDAG.json: ERC-20 ABI for BDAG token.
+UniswapV2Router.json: Uniswap V2 router ABI for swaps.
+StakingContract.json: Staking contract ABI.
+Example ERC-20 ABI (abis/BDAG.json):json
+
+[
+  {
+    "constant": true,
+    "inputs": [{ "name": "_owner", "type": "address" }],
+    "name": "balanceOf",
+    "outputs": [{ "name": "balance", "type": "uint256" }],
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      { "name": "_spender", "type": "address" },
+      { "name": "_value", "type": "uint256" }
+    ],
+    "name": "approve",
+    "outputs": [{ "name": "success", "type": "bool" }],
+    "type": "function"
+  }
+]
+Example Uniswap V2 Router ABI (abis/UniswapV2Router.json): Use the standard Uniswap V2 ABI (available from Uniswap’s GitHub or docs.blockdagnetwork.io).
+Example Staking Contract ABI (abis/StakingContract.json): Assume a simple staking contract with stake, unstake, and claimRewards methods (request from BlockDAG).
+Step 2: Update Your React ComponentExtend the BlockDAGHeader component to include token swap and staking functionality, building on your existing balance-fetching logic. The code below adds UI inputs for swapping and staking, interacts with the contracts, and updates MetaMask and the app UI.jsx
+
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Zap, Brain, Code2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import Web3 from "web3";
+import BDAG_ABI from "../abis/BDAG.json"; // Replace with actual BDAG ABI
+import UNISWAP_ROUTER_ABI from "../abis/UniswapV2Router.json"; // Replace with BlockDAG swap router ABI
+import STAKING_ABI from "../abis/StakingContract.json"; // Replace with BlockDAG staking ABI
+
+export const BlockDAGHeader = () => {
+  const [account, setAccount] = useState(null);
+  const [balance, setBalance] = useState(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState(null);
+  const [swapAmount, setSwapAmount] = useState("");
+  const [toTokenAddress, setToTokenAddress] = useState("");
+  const [stakeAmount, setStakeAmount] = useState("");
+  const [stakedBalance, setStakedBalance] = useState(null);
+  const [txStatus, setTxStatus] = useState(null);
+
+  const rpcUrl = "https://rpc.primordial.bdagscan.com";
+  const chainId = 1043;
+  // Replace with actual contract addresses
+  const bdagAddress = "0x123..."; // BDAG token contract
+  const routerAddress = "0x456..."; // Swap router contract
+  const stakingAddress = "0x789..."; // Staking contract
+
+  // Test RPC URL
+  const testRpcUrl = async () => {
+    try {
+      const response = await fetch(rpcUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+          params: [],
+          id: 1,
+        }),
+      });
+      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+      const data = await response.json();
+      if (data.result !== "0x40f") throw new Error(`Unexpected chain ID: ${data.result}`);
+      return true;
+    } catch (err) {
+      throw new Error(`RPC test failed: ${err.message}`);
+    }
+  };
+
+  // Fetch BDAG balance
+  const fetchBalance = async (web3, account) => {
+    try {
+      if (!web3.utils.isAddress(account)) throw new Error("Invalid wallet address");
+      const tokenContract = new web3.eth.Contract(BDAG_ABI, bdagAddress);
+      const balanceWei = await tokenContract.methods.balanceOf(account).call();
+      const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+      const formattedBalance = parseFloat(balanceEth).toFixed(4);
+      setBalance(formattedBalance);
+      return formattedBalance;
+    } catch (err) {
+      setError(`Failed to fetch balance: ${err.message}`);
+      console.error("Balance fetch error:", err);
+      setBalance(null);
+      return null;
+    }
+  };
+
+  // Fetch staked balance
+  const fetchStakedBalance = async (web3, account) => {
+    try {
+      const stakingContract = new web3.eth.Contract(STAKING_ABI, stakingAddress);
+      const stakedWei = await stakingContract.methods.stakedBalance(account).call();
+      const stakedEth = web3.utils.fromWei(stakedWei, "ether");
+      const formattedStaked = parseFloat(stakedEth).toFixed(4);
+      setStakedBalance(formattedStaked);
+      return formattedStaked;
+    } catch (err) {
+      setError(`Failed to fetch staked balance: ${err.message}`);
+      console.error("Staked balance fetch error:", err);
+      setStakedBalance(null);
+      return null;
+    }
+  };
+
+  // Connect MetaMask
+  const connectMetaMask = async () => {
+    setIsConnecting(true);
+    setError(null);
+    setBalance(null);
+    setStakedBalance(null);
+    try {
+      if (typeof window.ethereum === "undefined") {
+        setError("MetaMask is not installed. Please install MetaMask.");
+        return;
+      }
+
+      await testRpcUrl();
+      const web3 = new Web3(window.ethereum);
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      setAccount(accounts[0]);
+
+      const currentChainId = await web3.eth.getChainId();
+      if (currentChainId !== chainId) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x40f" }],
+          });
+        } catch (switchError) {
+          if (switchError.code === 4902) {
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: "0x40f",
+                  chainName: "BlockDAG Primordial Testnet",
+                  rpcUrls: [rpcUrl],
+                  nativeCurrency: { name: "BDAG", symbol: "BDAG", decimals: 18 },
+                  blockExplorerUrls: ["https://explorer.testnet.blockdag.network"],
+                },
+              ],
+            });
+          } else {
+            throw new Error(`Failed to switch network: ${switchError.message}`);
+          }
+        }
+      }
+
+      await fetchBalance(web3, accounts[0]);
+      await fetchStakedBalance(web3, accounts[0]);
+    } catch (error) {
+      setError(`Connection failed: ${error.message}`);
+      console.error("Connection error:", error);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  // Approve tokens for swap or staking
+  const approveTokens = async (web3, account, spender, amount) => {
+    try {
+      const tokenContract = new web3.eth.Contract(BDAG_ABI, bdagAddress);
+      const amountWei = web3.utils.toWei(amount, "ether");
+      const tx = await tokenContract.methods
+        .approve(spender, amountWei)
+        .send({ from: account });
+      setTxStatus(`Approval successful: ${tx.transactionHash}`);
+      return tx;
+    } catch (err) {
+      setError(`Approval failed: ${err.message}`);
+      console.error("Approval error:", err);
+      return null;
+    }
+  };
+
+  // Swap tokens
+  const swapTokens = async () => {
+    setError(null);
+    setTxStatus(null);
+    try {
+      if (!swapAmount || !toTokenAddress || !web3.utils.isAddress(toTokenAddress)) {
+        throw new Error("Invalid swap amount or token address");
+      }
+      const web3 = new Web3(window.ethereum);
+      const amountWei = web3.utils.toWei(swapAmount, "ether");
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 10; // 10 minutes from now
+
+      // Approve tokens for router
+      await approveTokens(web3, account, routerAddress, swapAmount);
+
+      const routerContract = new web3.eth.Contract(UNISWAP_ROUTER_ABI, routerAddress);
+      const tx = await routerContract.methods
+        .swapExactTokensForTokens(
+          amountWei,
+          2, // Accept any output amount (slippage protection needed in production)
+          [bdagAddress, toTokenAddress],
+          account,
+          deadline
+        )
+        .send({ from: account });
+      setTxStatus(`Swap successful: ${tx.transactionHash}`);
+      await fetchBalance(web3, account); // Update balance after swap
+    } catch (err) {
+      setError(`Swap failed: ${err.message}`);
+      console.error("Swap error:", err);
+    }
+  };
+
+  // Stake tokens
+  const stakeTokens = async () => {
+    setError(null);
+    setTxStatus(null);
+    try {
+      if (!stakeAmount) throw new Error("Invalid stake amount");
+      const web3 = new Web3(window.ethereum);
+      const amountWei = web3.utils.toWei(stakeAmount, "ether");
+
+      // Approve tokens for staking contract
+      await approveTokens(web3, account, stakingAddress, stakeAmount);
+
+      const stakingContract = new web3.eth.Contract(STAKING_ABI, stakingAddress);
+      const tx = await stakingContract.methods
+        .stake(amountWei)
+        .send({ from: account });
+      setTxStatus(`Stake successful: ${tx.transactionHash}`);
+      await fetchBalance(web3, account);
+      await fetchStakedBalance(web3, account);
+    } catch (err) {
+      setError(`Stake failed: ${err.message}`);
+      console.error("Stake error:", err);
+    }
+  };
+
+  // Auto-fetch balance and staked balance when account changes
+  useEffect(() => {
+    if (account) {
+      const web3 = new Web3(rpcUrl);
+      fetchBalance(web3, account);
+      fetchStakedBalance(web3, account);
+    }
+  }, [account]);
+
+  return (
+    <Card className="p-6 bg-gradient-secondary border-accent/20 shadow-card">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center shadow-primary">
+            <Zap className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-card-foreground">
+              BlockDAG Contract Buddy
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              AI-powered smart contract generation
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="bg-accent/20 text-accent border-accent/30"
+          >
+            <Brain className="w-3 h-3 mr-1" />
+            AI Powered
+          </Badge>
+          <Badge
+            variant="secondary"
+            className="bg-primary/20 text-primary border-primary/30"
+          >
+            <Code2 className="w-3 h-3 mr-1" />
+            Smart Contracts
+          </Badge>
+          <Button
+            onClick={connectMetaMask}
+            disabled={isConnecting || account}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isConnecting
+              ? "Connecting..."
+              : account
+              ? `Connected: ${account.slice(0, 6)}...${account.slice(-4)}`
+              : "Connect MetaMask"}
+          </Button>
+        </div>
+      </div>
+      {account && (
+        <div className="mt-4">
+          <p className="text-sm text-muted-foreground">
+            Balance: {balance !== null ? `${balance} BDAG` : "Fetching..."}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Staked Balance: {stakedBalance !== null ? `${stakedBalance} BDAG` : "Fetching..."}
+          </p>
+          <div className="mt-4">
+            <h2 className="text-lg font-semibold">Swap Tokens</h2>
+            <Input
+              type="text"
+              placeholder="To Token Address"
+              value={toTokenAddress}
+              onChange={(e) => setToTokenAddress(e.target.value)}
+              className="mt-2"
+            />
+            <Input
+              type="number"
+              placeholder="Amount to Swap (BDAG)"
+              value={swapAmount}
+              onChange={(e) => setSwapAmount(e.target.value)}
+              className="mt-2"
+            />
+            <Button onClick={swapTokens} className="mt-2">
+              Swap Tokens
+            </Button>
+          </div>
+          <div className="mt-4">
+            <h2 className="text-lg font-semibold">Stake Tokens</h2>
+            <Input
+              type="number"
+              placeholder="Amount to Stake (BDAG)"
+              value={stakeAmount}
+              onChange={(e) => setStakeAmount(e.target.value)}
+              className="mt-2"
+            />
+            <Button onClick={stakeTokens} className="mt-2">
+              Stake Tokens
+            </Button>
+          </div>
+        </div>
+      )}
+      {txStatus && (
+        <p className="text-sm text-green-500 mt-2">{txStatus}</p>
+      )}
+      {error && (
+        <p className="text-sm text-red-500 mt-2">{error}</p>
+      )}
+    </Card>
+  );
+};
+
+Key Features:Balance Fetching: Reuses your existing logic to fetch BDAG balance, updated after swaps and staking.
+Staked Balance: Fetches the user’s staked BDAG balance from the staking contract.
+Token Approval: Approves the swap router or staking contract to spend BDAG tokens before transactions.
+Swap Tokens: Uses a Uniswap V2-like swapExactTokensForTokens method to swap BDAG for another token. Requires user input for the token address and amount.
+Stake Tokens: Stakes BDAG tokens using a stake method on the staking contract.
+UI Updates: Displays balance, staked balance, and transaction statuses in the app.
+MetaMask Integration: Transactions are sent via MetaMask, which prompts for confirmation and reflects updated balances.
+Error Handling: Catches invalid inputs, RPC failures, and contract errors, displaying user-friendly messages.
+
+Setup in Replit:Save the code in BlockDAGHeader.jsx.
+Create an abis/ folder in Replit and add BDAG.json, UniswapV2Router.json, and StakingContract.json with the correct ABIs.
+Update bdagAddress, routerAddress, and stakingAddress with actual contract addresses from BlockDAG.
+Ensure web3 is installed:bash
+
+npm install web3
+Open the Replit preview (https://<your-replit-id>.repl.co) in a browser with MetaMask installed.
+
+Step 3: Integrate with ChatbotMake the balance, staked balance, and transaction statuses available to your chatbot:Pass Props:jsx
+
+<YourChatbotComponent
+  account={account}
+  balance={balance}
+  stakedBalance={stakedBalance}
+  txStatus={txStatus}
+/>
+
+In the chatbot component:jsx
+
+const YourChatbotComponent = ({ account, balance, stakedBalance, txStatus }) => {
+  return (
+    <div>
+      {account && (
+        <>
+          <p>Your wallet balance is {balance !== null ? `${balance} BDAG` : "Fetching..."}</p>
+          <p>Your staked balance is {stakedBalance !== null ? `${stakedBalance} BDAG` : "Fetching..."}</p>
+          {txStatus && <p>Transaction: {txStatus}</p>}
+        </>
+      )}
+      {!account && <p>Please connect your MetaMask wallet</p>}
+    </div>
+  );
+};
+Update Chatbot Responses:Modify the chatbot logic to handle balance, staking, and swap queries:javascript
+
+if (userMessage.toLowerCase().includes("balance")) {
+  if (account && balance !== null) {
+    return `Your wallet balance is ${balance} BDAG`;
+  }
+  return "Please connect your MetaMask wallet or wait for balance to load.";
+}
+if (userMessage.toLowerCase().includes("staked")) {
+  if (account && stakedBalance !== null) {
+    return `Your staked balance is ${stakedBalance} BDAG`;
+  }
+  return "Please connect your MetaMask wallet or wait for staked balance to load.";
+}
+if (userMessage.toLowerCase().includes("swap") && txStatus) {
+  return `Swap status: ${txStatus}`;
+}
+if (userMessage.toLowerCase().includes("stake") && txStatus) {
+  return `Stake status: ${txStatus}`;
+}
+Context API (Optional):Share state globally:jsx
+
+import { createContext, useContext } from "react";
+
+export const WalletContext = createContext();
+
+// In parent component
+<WalletContext.Provider value={{ account, balance, stakedBalance, txStatus }}>
+  <BlockDAGHeader />
+  <YourChatbotComponent />
+</WalletContext.Provider>
+
+// In YourChatbotComponent
+const YourChatbotComponent = () => {
+  const { account, balance, stakedBalance, txStatus } = useContext(WalletContext);
+  return (
+    <div>
+      {account && (
+        <>
+          <p>Your wallet balance is {balance !== null ? `${balance} BDAG` : "Fetching..."}</p>
+          <p>Your staked balance is {stakedBalance !== null ? `${stakedBalance} BDAG` : "Fetching..."}</p>
+          {txStatus && <p>Transaction: {txStatus}</p>}
+        </>
+      )}
+      {!account && <p>Please connect your MetaMask wallet</p>}
+    </div>
+  );
+};
+Step 4: Test Token SwapAdd Test Tokens:Request BDAG and another test token (e.g., a test stablecoin) from the BlockDAG faucet.
+Verify balances in MetaMask and on https://explorer.testnet.blockdag.network.
+Perform Swap:Open your Replit app (https://<your-replit-id>.repl.co).
+Click “Connect MetaMask” and approve the connection.
+Enter the token address to swap to (e.g., a test token address) and the amount of BDAG to swap.
+Click “Swap Tokens.” MetaMask will prompt for two transactions:Approve the router to spend BDAG.
+Execute the swap.
+Check the app for the transaction status (e.g., “Swap successful: <txHash>”).
+Verify the new token balance in MetaMask and the updated BDAG balance in the app.
+Debug Issues:If the swap fails, check DevTools (F12) Console for errors (e.g., “Invalid address,” “Insufficient balance”).
+Ensure the router contract address and ABI are correct.
+Verify the RPC URL with:bash
+
+curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' https://rpc.primordial.bdagscan.com
+If the to-token address is invalid, confirm it with BlockDAG’s documentation.
+Step 5: Test StakingStake Tokens:In the app, enter the amount of BDAG to stake.
+Click “Stake Tokens.” MetaMask will prompt for:Approval for the staking contract.
+The stake transaction.
+Check the app for the transaction status and updated staked balance.
+Verify in MetaMask:Open MetaMask and check the transaction history (Activity tab) for the approval and stake transactions.
+Verify the BDAG balance decreases and the staked balance appears in the app.
+Debug Issues:If staking fails, check for errors in DevTools (e.g., “Method not found” if the staking contract ABI is incorrect).
+Ensure the staking contract address and ABI are correct.
+Confirm sufficient BDAG balance for staking.
+Step 6: Reflect in MetaMaskBalance Updates: After swaps or staking, MetaMask automatically updates the BDAG balance upon transaction confirmation. If it doesn’t:Refresh MetaMask: Settings > Advanced > Clear activity and nonce data.
+Switch networks (e.g., to Ethereum Mainnet and back to BlockDAG).
+Transaction History: Swaps and stakes appear in MetaMask’s Activity tab with transaction hashes.
+Token Visibility: If the swapped token doesn’t appear in MetaMask:Add it manually: MetaMask > Assets > Import Tokens > Enter the token address and symbol.
+Step 7: Handle Replit-Specific IssuesCORS Issues:If RPC calls fail due to CORS, test locally:Download your Replit project (Download as zip or git clone).
+Run: npm install && npm run start.
+Access at http://localhost:3000.
+Use a CORS proxy for testing (not production):jsx
+
+const rpcUrl = "https://cors-anywhere.herokuapp.com/https://rpc.primordial.bdagscan.com";
+MetaMask Injection:In Replit’s preview, verify window.ethereum:javascript
+
+console.log(window.ethereum);
+If undefined, ensure MetaMask is enabled and no other wallets are active.
+Network Restrictions:If Replit blocks RPC calls, test the RPC in the Shell (Step 4) or contact Replit support.
+Step 8: Security PrecautionsVerify Contracts: Use only contract addresses and ABIs from blockdag.network, docs.blockdagnetwork.io, or @blockdagnetwork
+.
+Test Wallet: Use a MetaMask account with no real funds.
+Avoid Scams: Ignore unofficial support channels. Use support@blockdag.network or support.metamask.io.
+Backup: Secure your MetaMask Secret Recovery Phrase.
+
+Step 9: Debug and TestCheck Console Logs:In Replit’s preview, open DevTools (F12) and monitor Console for errors during swaps/staking.
+Log transaction details:jsx
+
+console.log("Swap transaction:", tx);
+Verify on Explorer:Check transaction hashes on https://explorer.testnet.blockdag.network to confirm swaps and stakes.
+Verify token balances and staked amounts.
+Test Locally:If Replit issues persist, test locally to rule out environment problems.
+Step 10: Contact SupportIf swaps or staking fail:BlockDAG: Email support@blockdag.network or check Discord/X for contract details or testnet status.
+MetaMask: Visit support.metamask.io with error details.
+Replit: Contact Replit support for CORS or network issues.
+
+SummaryTo perform token swaps and staking in your Replit app with MetaMask:Obtain BDAG, swap router, and staking contract addresses/ABIs from docs.blockdagnetwork.io.
+Use the updated BlockDAGHeader component to connect MetaMask, fetch balances, and perform swaps/staking.
+Integrate balance and transaction statuses with your chatbot via props or Context API.
+Test swaps and staking, verifying results in the app and MetaMask.
+Handle Replit issues (CORS, network restrictions) by testing locally or using a proxy.
+Verify transactions on https://explorer.testnet.blockdag.network.
+

@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "react-syntax-highlighter": "^15.6.1",
+    "sonner": "^2.0.6"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

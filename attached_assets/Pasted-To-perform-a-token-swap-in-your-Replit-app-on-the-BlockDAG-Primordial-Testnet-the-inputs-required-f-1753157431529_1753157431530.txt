@@ -1,0 +1,26 @@
+To perform a token swap in your Replit app on the BlockDAG Primordial Testnet, the inputs required from the user and those the chatbot (your app) can fetch or calculate automatically are as follows:User-Provided InputsThese are the inputs the user must explicitly provide through the app’s UI (e.g., <Input> fields):Output Token Address:The address of the token the user wants to receive (e.g., 0x456... for a test token).
+Collected via an <Input> field or a dropdown of supported tokens.
+Example: User enters 0x456... or selects a token from a list.
+Amount to Swap:The quantity of BDAG tokens to swap (e.g., 10 BDAG).
+Collected via a numeric <Input> field.
+Example: User enters 10 in the input field.
+Minimum Amount Out (Optional):The minimum amount of the output token the user is willing to accept to protect against slippage.
+Collected via a numeric <Input> field, but can be optional (default to 0 for testnet).
+Example: User enters 5 or leaves it blank (app sets to 0).
+Inputs Fetched or Calculated by the ChatbotThese are handled automatically by your app or chatbot, requiring no user input:Input Token Address:Hardcoded to the BDAG token contract address (e.g., 0x123...).
+Fetched from: Your app’s configuration (replace placeholder with the actual BDAG contract address from docs.blockdagnetwork.io).
+Example: App uses bdagAddress = "0x123...".
+Wallet Address:Automatically fetched from MetaMask using window.ethereum.request({ method: "eth_requestAccounts" }).
+Fetched from: MetaMask after the user connects their wallet.
+Example: App retrieves 0x789... when the user clicks “Connect MetaMask”.
+Deadline:Automatically calculated as the current Unix timestamp plus a buffer (e.g., 10 minutes).
+Calculated by: Math.floor(Date.now() / 1000) + 60 * 10.
+Example: App sets deadline = 1758450000 (current timestamp + 600 seconds).
+SummaryUser Inputs (via <Input> fields):Output Token Address
+Amount to Swap
+Minimum Amount Out (optional)
+Chatbot-Fetched/Calculated:Input Token Address (hardcoded BDAG address)
+Wallet Address (from MetaMask)
+Deadline (calculated programmatically)
+Ensure your UI collects the user inputs via <Input> fields, and the chatbot uses Web3.js to fetch the wallet address and calculate the deadline, as shown in the previous BlockDAGHeader component code. Replace placeholder contract addresses with actual ones from BlockDAG’s documentation.
+

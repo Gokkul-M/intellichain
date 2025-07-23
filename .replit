@@ -1,0 +1,33 @@
+modules = ["nodejs-20", "web"]
+run = "npm run dev"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "npm run dev"]
+
+[workflows]
+runButton = "Run Client"
+
+[[workflows.workflow]]
+name = "Run"
+author = 45289763
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Run Client"
+author = 40818943
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run dev"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
