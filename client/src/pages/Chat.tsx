@@ -876,8 +876,7 @@ Please check your wallet connection and try again.`;
               to: "0x742d...8B1a",
               status: "Success",
               timestamp: new Date(Date.now() - 1800000).toLocaleString(),
-              ```tool_code
-gasUsed: "21000"
+              gasUsed: "21000"
             },
             {
               hash: "0xb2c3d4e5f6789012345678901234567890abcdef",
