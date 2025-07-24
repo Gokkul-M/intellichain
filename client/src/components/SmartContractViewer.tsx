@@ -11,8 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import styles from "./SmartContractViewer.module.css";
+
 
 
 interface SmartContractViewerProps {
@@ -171,18 +171,13 @@ contract IntelliChainToken is ERC20, Ownable {
               autoFocus
             />
           ) : (
-            <SyntaxHighlighter
-              language="solidity"
-              style={vscDarkPlus}
-              customStyle={{
-                padding: "1em",
-                borderRadius: "0.5em",
-                fontSize: "0.85rem",
-                backgroundColor: "transparent"
-              }}
-            >
-              {contractCode}
-            </SyntaxHighlighter>
+            <div className={styles.codeContainer}>
+              <pre className={styles.codeBlock}>
+                <code className={styles.solidityCode}>
+                  {contractCode}
+                </code>
+              </pre>
+            </div>
           )}
         </div>
       </DialogContent>
