@@ -1785,7 +1785,7 @@ Ready to interact! What function would you like to call?`;
           apy: "4.2%",
           estimatedRewards: "0.042 ETH/year",
         },
-        status: "pending",Enhanced chat component with comprehensive blockchain interaction features: token swaps, transaction history, gas estimation, faucet requests, contract verification, staking, and more.
+        status: "pending"
       };
     }
 
