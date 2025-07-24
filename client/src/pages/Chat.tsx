@@ -1029,168 +1029,64 @@ Make sure the recipient address is 42 characters long and starts with 0x.`,
     toast.success("Chat exported successfully");
   };
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navbar />
       
-      {/* Integrated BlockDAG Header */}
-      <Card className="m-4 p-6 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border-2 border-blue-200 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-800">
-                BlockDAG Contract Buddy
-              </h1>
-              <p className="text-sm text-gray-600">
-                Real BDAG ERC-20 token transfers with balance verification
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="secondary"
-              className="bg-green-100 text-green-700 border-green-300"
-            >
-              <Brain className="w-3 h-3 mr-1" />
-              AI Powered
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="bg-blue-100 text-blue-700 border-blue-300"
-            >
-              <Code2 className="w-3 h-3 mr-1" />
-              ERC-20 Tokens
-            </Badge>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {!isConnected ? (
-            <Button
-              onClick={connectMetaMask}
-              disabled={isConnecting}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 py-3"
-              size="lg"
-            >
-              {isConnecting ? "Connecting to BlockDAG..." : "Connect MetaMask to BlockDAG Testnet"}
-            </Button>
-          ) : (
-            <div className="space-y-3">
-              <div className="p-4 bg-green-100 border border-green-300 rounded-lg">
+      {/* Main Container with improved spacing */}
+      <div className="flex-1 container mx-auto px-4 py-6 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-120px)]">
+          
+          {/* Chat Area - Enhanced Layout */}
+          <div className="lg:col-span-3 flex flex-col">
+            <Card className="flex flex-col flex-1 overflow-hidden shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+              
+              {/* Enhanced Header */}
+              <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5 py-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-green-800">
-                      ✅ Connected to BlockDAG Testnet
-                    </p>
-                    <p className="text-xs text-green-700">
-                      Account: {account?.slice(0, 6)}...{account?.slice(-4)}
-                    </p>
-                    <p className="text-xs text-green-700">
-                      💰 Your BDAG Balance: {balance || "0.0000"} BDAG
-                    </p>
-                    <p className="text-xs text-green-700">
-                      💰 Friend's BDAG Balance: {friendBalance || "Loading..."} BDAG
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={updateBothBalances}
-                      variant="outline"
-                      size="sm"
-                      className="text-green-700 border-green-300 hover:bg-green-200"
-                    >
-                      <RefreshCw className="w-4 h-4 mr-1" />
-                      Refresh
-                    </Button>
-                    <Button
-                      onClick={() => window.open(`${explorerUrl}/address/${account}`, '_blank')}
-                      variant="outline"
-                      size="sm"
-                      className="text-blue-700 border-blue-300 hover:bg-blue-200"
-                    >
-                      <ExternalLink className="w-4 h-4 mr-1" />
-                      Explorer
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {txStatus && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <pre className="text-sm text-green-800 whitespace-pre-wrap font-mono">
-                    {txStatus}
-                  </pre>
-                </div>
-              )}
-
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <pre className="text-sm text-red-700 whitespace-pre-wrap">
-                    {error}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-900 mb-2">
-              <strong>📋 Real BDAG ERC-20 Token Transfer with Balance Verification:</strong>
-            </p>
-            <div className="text-xs text-blue-800 space-y-1">
-              <p>• <strong>Contract:</strong> {bdagTokenAddress} (Official BDAG ERC-20 Token)</p>
-              <p>• <strong>Network:</strong> BlockDAG Primordial Testnet (Chain ID: 1043)</p>
-              <p>• <strong>RPC:</strong> https://rpc.primordial.bdagscan.com</p>
-              <p>• <strong>Explorer:</strong> https://explorer.testnet.blockdag.network</p>
-              <p>• <strong>Balance Updates:</strong> Both sender and recipient balances verified after transfer</p>
-              <p>• <strong>MetaMask Display:</strong> Shows "0 BDAG" (normal for ERC-20), actual amount in transaction data</p>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* BDAG Contract Manager */}
-      <BDAGContractManager />
-
-      {/* Chat Messages */}
-      <main className="flex-1 px-4 md:px-6">
-        <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Chat Area */}
-          <div className="lg:col-span-3 flex flex-col h-[calc(100vh-5rem)]">
-            <Card className="flex flex-col flex-1 overflow-hidden">
-              <CardHeader className="border-b">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Bot className="w-5 h-5 text-primary" />
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Bot className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
                     <div>
-                      <CardTitle className="text-lg">
-                        AI Blockchain Assistant
+                      <CardTitle className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                        BlockDAG AI Assistant
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        Online • Ready to help
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        Online • Ready to help with BDAG transfers
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" onClick={exportChat}>
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={clearChat}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <Brain className="w-3 h-3 mr-1" />
+                      AI Powered
+                    </Badge>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      <Code2 className="w-3 h-3 mr-1" />
+                      ERC-20
+                    </Badge>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" onClick={exportChat} className="h-8 w-8 p-0">
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={clearChat} className="h-8 w-8 p-0">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
 
-              <CardContent className="flex-1 overflow-hidden p-0">
-                <ScrollArea className="h-full px-4 py-2">
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div key={message.id}>
+              {/* Chat Messages Area */}
+              <CardContent className="flex-1 overflow-hidden p-0 relative">
+                <ScrollArea className="h-full">
+                  <div className="p-6 space-y-6">
+                    {messages.map((message, index) => (
+                      <div key={message.id} className={`animate-fade-in-up`} style={{animationDelay: `${index * 0.1}s`}}>
                         <MessageBubble
                           type={message.type}
                           content={message.content}
@@ -1198,12 +1094,10 @@ Make sure the recipient address is 42 characters long and starts with 0x.`,
                           status={message.status}
                         />
                         {message.transaction && (
-                          <div className="mt-3 ml-12">
+                          <div className="mt-4 ml-12">
                             <TransactionPreview
                               transaction={message.transaction}
-                              onExecute={() =>
-                                handleExecuteTransaction(message.transaction)
-                              }
+                              onExecute={() => handleExecuteTransaction(message.transaction)}
                               disabled={!account}
                             />
                           </div>
@@ -1212,13 +1106,18 @@ Make sure the recipient address is 42 characters long and starts with 0x.`,
                     ))}
 
                     {isLoading && (
-                      <div className="flex items-center gap-3 text-muted-foreground ml-12">
-                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                          <Bot className="w-4 h-4" />
+                      <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl ml-12 animate-pulse">
+                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <Bot className="w-4 h-4 text-white" />
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          AI is thinking...
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                          <span className="text-sm font-medium">AI is processing your request...</span>
+                          <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -1228,46 +1127,211 @@ Make sure the recipient address is 42 characters long and starts with 0x.`,
                 </ScrollArea>
               </CardContent>
 
-              <div className="border-t p-4">
-                <ChatInput
-                  onSend={handleSendMessage}
-                  disabled={isLoading}
-                  placeholder="Describe what you want to do..."
-                />
+              {/* Enhanced Input Area */}
+              <div className="border-t bg-gradient-to-r from-slate-50 to-blue-50 p-4">
+                <div className="space-y-3">
+                  {(txStatus || error) && (
+                    <div className="max-h-32 overflow-y-auto">
+                      {txStatus && (
+                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg mb-2">
+                          <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
+                            {txStatus}
+                          </pre>
+                        </div>
+                      )}
+                      {error && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <pre className="text-xs text-red-700 whitespace-pre-wrap">
+                            {error}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <ChatInput
+                    onSend={handleSendMessage}
+                    disabled={isLoading}
+                    placeholder={isConnected ? "Ask me anything about BDAG transfers..." : "Connect your wallet to start chatting..."}
+                  />
+                </div>
               </div>
             </Card>
           </div>
 
-          {/* Sidebar */}
-          <div className="flex flex-col gap-6">
-            <WalletConnect />
+          {/* Enhanced Sidebar */}
+          <div className="flex flex-col gap-4">
+            
+            {/* Connection Status Card */}
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-blue-600" />
+                  <CardTitle className="text-lg">Connection Status</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!isConnected ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800 font-medium">⚠️ Wallet Not Connected</p>
+                      <p className="text-xs text-yellow-700 mt-1">Connect to start using BDAG features</p>
+                    </div>
+                    <Button
+                      onClick={connectMetaMask}
+                      disabled={isConnecting}
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-md"
+                      size="sm"
+                    >
+                      {isConnecting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-4 h-4 mr-2" />
+                          Connect MetaMask
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <p className="text-sm font-semibold text-green-800">Connected to BlockDAG</p>
+                      </div>
+                      <div className="space-y-1 text-xs text-green-700">
+                        <p><strong>Account:</strong> {account?.slice(0, 6)}...{account?.slice(-4)}</p>
+                        <p><strong>Your Balance:</strong> {balance || "0.0000"} BDAG</p>
+                        <p><strong>Friend's Balance:</strong> {friendBalance || "Loading..."} BDAG</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={updateBothBalances}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs"
+                      >
+                        <RefreshCw className="w-3 h-3 mr-1" />
+                        Refresh
+                      </Button>
+                      <Button
+                        onClick={() => window.open(`${explorerUrl}/address/${account}`, '_blank')}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs"
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        Explorer
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
+            {/* Quick Actions Card */}
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Send className="w-5 h-5 text-purple-600" />
+                  <CardTitle className="text-lg">Quick Actions</CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {[
-                  { label: "Check BDAG Balance", msg: "check my balance" },
-                  { label: "Transfer to Friend", msg: `transfer 1 BDAG to ${friendAddress}` },
-                  { label: "Help Commands", msg: "help" },
-                  { label: "Swap Tokens", msg: "Swap 100 USDC for ETH" },
+                  { 
+                    label: "Check Balance", 
+                    msg: "check my balance", 
+                    icon: "💰",
+                    description: "View current BDAG balances"
+                  },
+                  { 
+                    label: "Transfer to Friend", 
+                    msg: `transfer 1 BDAG to ${friendAddress}`, 
+                    icon: "📤",
+                    description: "Send 1 BDAG token"
+                  },
+                  { 
+                    label: "Help & Commands", 
+                    msg: "help", 
+                    icon: "❓",
+                    description: "View available commands"
+                  },
+                  { 
+                    label: "Token Swap", 
+                    msg: "Swap 100 USDC for ETH", 
+                    icon: "🔄",
+                    description: "Exchange tokens"
+                  },
                 ].map((action) => (
                   <Button
                     key={action.label}
                     variant="outline"
-                    className="w-full justify-start text-sm"
+                    className="w-full justify-start text-left p-3 h-auto hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200"
                     onClick={() => handleSendMessage(action.msg)}
                     disabled={isLoading}
                   >
-                    {action.label}
+                    <div className="flex items-center gap-3 w-full">
+                      <span className="text-lg">{action.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{action.label}</p>
+                        <p className="text-xs text-muted-foreground truncate">{action.description}</p>
+                      </div>
+                    </div>
                   </Button>
                 ))}
               </CardContent>
             </Card>
+
+            {/* Network Info Card */}
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Info className="w-5 h-5 text-indigo-600" />
+                  <CardTitle className="text-lg">Network Info</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Network:</span>
+                    <span className="font-medium">BlockDAG Testnet</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Chain ID:</span>
+                    <span className="font-medium">1043</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Token:</span>
+                    <span className="font-medium">BDAG (ERC-20)</span>
+                  </div>
+                  <Separator className="my-2" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => window.open(explorerUrl, '_blank')}
+                  >
+                    <ExternalLink className="w-3 h-3 mr-1" />
+                    View Block Explorer
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* BDAG Contract Manager - Compact */}
+            <div className="lg:block hidden">
+              <BDAGContractManager />
+            </div>
           </div>
         </div>
-      </main>
+      </div>
+      
+      <Toaster />
     </div>
   );
 };
