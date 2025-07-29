@@ -60,7 +60,7 @@ const Home = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-28 pb-20">
+      <section className="container mx-auto px-4 pt-28 pb-20 mt-10">
         <div className="text-center max-w-5xl mx-auto">
           <Badge variant="outline" className="mb-6 px-4 py-2 text-base">
             <Sparkles className="w-4 h-4 mr-2" />

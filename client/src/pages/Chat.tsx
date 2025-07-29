@@ -31,6 +31,7 @@ import { useWallet } from "@/contexts/WalletContext";
 import { BDAGContractManager } from "@/components/BDAGContractManager";
 import { Toaster } from "@/components/ui/sonner";
 import Web3 from "web3";
+import { promises } from "dns";
 
 interface Message {
   id: string;
@@ -2122,101 +2123,6 @@ Ready to interact! What function would you like to call?`;
     }
   };
 
-  // Simple AI response generator
-  const generateAIResponse = (
-    input: string,
-  ): { content: string; transaction?: any; status?: string } => {
-    const lowerInput = input.toLowerCase();
-
-    if (lowerInput.includes("swap") || lowerInput.includes("exchange")) {
-      return {
-        content:
-          "I'll help you swap tokens. Here's the transaction I've prepared:",
-        transaction: {
-          type: "swap",
-          from: "USDC",
-          to: "ETH",
-          amount: "100",
-          estimatedOutput: "0.045 ETH",
-          gasEstimate: "0.002 ETH (~$4.50)",
-          protocol: "Uniswap V3",
-        },
-        status: "pending",
-      };
-    }
-
-    if (lowerInput.includes("balance") || lowerInput.includes("wallet")) {
-      return {
-        content:
-          "Here's your wallet balance:\n\n• ETH: 2.45 ETH ($4,900)\n• USDC: 1,250 USDC\n• LINK: 45.6 LINK ($540)\n• Total Portfolio: ~$6,690",
-        status: "success",
-      };
-    }
-
-    if (lowerInput.includes("nft") || lowerInput.includes("mint")) {
-      return {
-        content:
-          "I can help you with NFT operations. Would you like to mint, buy, or sell an NFT? Please provide more details about what you'd like to do.",
-        status: "pending",
-      };
-    }
-
-    if (lowerInput.includes("stake") || lowerInput.includes("staking")) {
-      return {
-        content: "I'll help you stake your tokens. Here's what I found:",
-        transaction: {
-          type: "stake",
-          token: "ETH",
-          amount: "1.0",
-          protocol: "Lido",
-          apy: "4.2%",
-          estimatedRewards: "0.042 ETH/year",
-        },```tool_code
-      status: "pending"
-      };
-    }
-
-    return {
-      content:
-        "I understand you want to interact with the blockchain. Could you please be more specific about what you'd like to do? For example:\n\n• Swap tokens\n• Check balances\n• Stake tokens\n• Mint NFTs\n• Provide liquidity",
-      status: "pending",
-    };
-  };
-
-  const handleExecuteTransaction = async (transaction: any) => {
-    if (!account) {
-      toast.error("Please connect your wallet first");
-      return;
-    }
-
-    toast.success("Transaction submitted successfully!");
-    // Update message status
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.transaction === transaction
-          ? { ...msg, status: "success" as const }
-          : msg,
-      ),
-    );
-  };
-
-  const clearChat = () => {
-    setMessages(initialMessages);
-    toast.success("Chat cleared");
-  };
-
-  const exportChat = () => {
-    const chatData = JSON.stringify(messages, null, 2);
-    const blob = new Blob([chatData], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `chat-export-${new Date().toISOString().split("T")[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Chat exported successfully");
-  };
-
   // Enhanced blockchain functionality handlers
   const handleSwapTokens = async (fromToken: string, toToken: string, amount: string) => {
     try {
@@ -3133,9 +3039,9 @@ This transaction involves a transfer of BDAG tokens.
     return "❌ Staking is not yet implemented in this version.";
   }
 
-  const generateAIResponse = (
+  const generateAIResponse = async(
     input: string,
-  ): any => {
+  ): Promise<any> => {
     let response: any = {
       content:
         "I understand you want to interact with the blockchain. Could you please be more specific about what you'd like to do? For example:\n\n• Swap tokens\n• Check balances\n• Stake tokens\n• Mint NFTs\n• Provide liquidity",
@@ -3358,7 +3264,7 @@ Type "stake 10 BDAG for 30 days" to begin!`;
       <Navbar />
 
       {/* Main Container with improved spacing */}
-      <div className="flex-1 container mx-auto px-4 py-6 max-w-7xl">
+      <div className="flex-1 container mx-auto px-4 py-6 max-w-7xl mt-20">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-120px)]">
 
           {/* Chat Area - Enhanced Layout */}

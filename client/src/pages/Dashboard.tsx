@@ -115,6 +115,8 @@ const Dashboard = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 py-8 max-w-7xl mt-20">
+        <div className="flex flex-col lg:flex-row gap-6">
+        <main>
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -297,12 +299,16 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
-          <WalletConnect />
-          <TokenSwap />
 
         {/* Transaction History */}
         <TxHistory transactions={mockTransactions} maxItems={10} />
+        </main>
+        <aside className="w-full lg:w-1/4 space-y-6 mt-30">
+            <WalletConnect />
+            <TokenSwap />
+          </aside>
       </div>
+    </div>
     </div>
   );
 };
